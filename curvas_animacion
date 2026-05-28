@@ -1,0 +1,61 @@
+# Archivo: curvas_animacion/animacion_curvas.py
+import pygame
+import sys
+
+pygame.init()
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Animación con Curva de Bézier Cúbica")
+clock = pygame.time.Clock()
+
+# Puntos de control (P0, P1, P2, P3)
+P0 = [100, 500]
+P1 = [200, 100]
+P2 = [600, 100]
+P3 = [700, 500]
+
+t_anim = 0.0
+direction = 1
+speed = 0.005 # Velocidad de la animación
+
+def get_bezier_point(p0, p1, p2, p3, t):
+    # Ecuación paramétrica de Bézier Cúbica
+    x = (1-t)**3 * p0[0] + 3*(1-t)**2 * t * p1[0] + 3*(1-t) * t**2 * p2[0] + t**3 * p3[0]
+    y = (1-t)**3 * p0[1] + 3*(1-t)**2 * t * p1[1] + 3*(1-t) * t**2 * p2[1] + t**3 * p3[1]
+    return int(x), int(y)
+
+while True:
+    screen.fill((20, 24, 30))
+    
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+            
+    # Actualizar parámetro del tiempo de animación t
+    t_anim += speed * direction
+    if t_anim >= 1.0 or t_anim <= 0.0:
+        direction *= -1  # Efecto rebote en la animación
+
+    # Calcular puntos intermedios para dibujar la línea de la curva completa
+    curve_points = []
+    for step in range(101):
+        t_step = step / 100.0
+        curve_points.append(get_bezier_point(P0, P1, P2, P3, t_step))
+        
+    # Dibujar líneas guía de los puntos de control
+    pygame.draw.lines(screen, (80, 80, 80), False, [P0, P1, P2, P3], 1)
+    for p in [P0, P1, P2, P3]:
+        pygame.draw.circle(screen, (230, 90, 90), p, 5)
+
+    # Dibujar la curva calculada de Bézier
+    pygame.draw.lines(screen, (0, 190, 255), False, curve_points, 3)
+    
+    # Calcular posición actual del objeto animado
+    obj_x, obj_y = get_bezier_point(P0, P1, P2, P3, t_anim)
+    
+    # Dibujar el objeto animado (Círculo representativo)
+    pygame.draw.circle(screen, (255, 215, 0), (obj_x, obj_y), 12)
+    
+    pygame.display.flip()
+    clock.tick(60)
